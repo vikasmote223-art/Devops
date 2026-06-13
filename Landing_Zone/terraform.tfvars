@@ -2,7 +2,7 @@ RG = {
   RG1 = {
 
     name     = "Vikas_RG"
-    location = "australiaeast"
+    location = "korea south"
   }
 }
 Vnet = {

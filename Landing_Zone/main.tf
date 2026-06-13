@@ -45,6 +45,17 @@ resource "azurerm_subnet" "Subnet" {
 
 }
 
+resource "azurerm_public_ip" "pip" {
+  for_each = var.nic
+
+  name                = "${each.value.name}-pip"
+  location            = azurerm_resource_group.RG[each.value.resource_group_name].location
+  resource_group_name = azurerm_resource_group.RG[each.value.resource_group_name].name
+
+  allocation_method = "Static"
+  sku               = "Standard"
+}
+
 resource "azurerm_network_interface" "nic" {
   for_each            = var.nic
   name                = each.value.name
@@ -55,7 +66,48 @@ resource "azurerm_network_interface" "nic" {
     name                          = "internal"
     subnet_id                     = azurerm_subnet.Subnet[each.value.subnet_id].id
     private_ip_address_allocation = "Dynamic"
+
+    public_ip_address_id = azurerm_public_ip.pip[each.key].id
   }
+}
+
+resource "azurerm_network_security_group" "nsg" {
+  for_each = var.nic
+
+  name                = "${each.value.name}-nsg"
+  location            = azurerm_resource_group.RG[each.value.resource_group_name].location
+  resource_group_name = azurerm_resource_group.RG[each.value.resource_group_name].name
+
+  security_rule {
+    name                       = "RDP"
+    priority                   = 100
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "3389"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  }
+
+  security_rule {
+    name                       = "SSH"
+    priority                   = 110
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "22"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  }
+}
+
+resource "azurerm_network_interface_security_group_association" "nsg_attach" {
+  for_each = var.nic
+
+  network_interface_id      = azurerm_network_interface.nic[each.key].id
+  network_security_group_id = azurerm_network_security_group.nsg[each.key].id
 }
 
 resource "azurerm_windows_virtual_machine" "windowsVM" {
@@ -63,7 +115,7 @@ resource "azurerm_windows_virtual_machine" "windowsVM" {
   name                = each.value.name
   resource_group_name = azurerm_resource_group.RG[each.value.resource_group_name].name
   location            = azurerm_resource_group.RG[each.value.resource_group_name].location
-  size                = "Standard_B1s"
+  size                = "Standard_D2s_v3"
 
   admin_username = "Vikas"
   admin_password = "Vikas@123"
@@ -88,10 +140,12 @@ resource "azurerm_linux_virtual_machine" "linuxVM" {
   name                = each.value.name
   resource_group_name = azurerm_resource_group.RG[each.value.resource_group_name].name
   location            = azurerm_resource_group.RG[each.value.resource_group_name].location
-  size                = "Standard_B1s"
+  size                = "Standard_D2s_V3"
 
   admin_username = "Vikas"
   admin_password = "Vikas@123"
+
+  disable_password_authentication = false
 
   network_interface_ids = [azurerm_network_interface.nic[each.value.network_interface_id].id]
 
