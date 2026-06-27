@@ -1,19 +1,28 @@
-name: az login
+name: Terraform
 
 on:
   workflow_dispatch:
 
 jobs:
-  az-login:
+  terraform:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Azure Login
-        run: |
-          az login --service-principal \
-            -u c53d6bbe-834c-424e-b524-5e2d60caf15c \
-            -p 9b68Q~LditrAyd0TtKIXy5csC6yWjDLQ4KqDgbuy \
-            --tenant 2d23c2c0-6e0f-4c8b-af83-548e0c50f377
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
-      - name: Print Message
-        run: echo "Hello World"
+      - name: Azure Login
+        run: | az login --service-principal \ -u c53d6bbe-834c-424e-b524-5e2d60caf15c \ -p 9b68Q~LditrAyd0TtKIXy5csC6yWjDLQ4KqDgbuy \ --tenant 2d23c2c0-6e0f-4c8b-af83-548e0c50f377
+
+      - name: Install Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform Init
+        run: terraform init
+
+      - name: Terraform Plan
+        run: terraform plan
+
+      # Resource create karne ke liye
+      - name: Terraform Apply
+        run: terraform apply -auto-approve
