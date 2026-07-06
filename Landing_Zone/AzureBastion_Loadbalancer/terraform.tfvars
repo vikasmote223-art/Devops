@@ -9,7 +9,7 @@ Vnet = {
     name                = "Vikas_Vnet"
     location            = "RG1"
     resource_group_name = "RG1"
-    address_space       = ["10.0.0.0/23"]
+    address_space       = ["10.0.0.0/24"]
 
   }
 }
@@ -19,14 +19,14 @@ Subnet = {
     name                 = "Subnet1"
     resource_group_name  = "RG1"
     virtual_network_name = "Vnet1"
-    address_prefixes     = ["10.0.0.0/25"]
+    address_prefixes     = ["10.0.0.0/26"]
   }
 
   Subnet2 = {
     name                 = "Subnet2"
     resource_group_name  = "RG1"
     virtual_network_name = "Vnet1"
-    address_prefixes     = ["10.0.0.128/25"]
+    address_prefixes     = ["10.0.0.64/"]
   }
   Subnet3 = {
     name                 = "AzureBastionSubnet"
