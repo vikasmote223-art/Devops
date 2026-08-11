@@ -1,18 +1,38 @@
-terraform {
-  required_providers {
-    azurerm = {
-      source  = "hashicorp/azurerm"
-      version = "3.0.2"
-    }
-  }
-}
+name: Terraform Deployment
 
-provider "azurerm" {
-  features {}
-}
+on:
+  push:
+    branches:
+      - feature-all-set
 
-resource "azurerm_resource_group" "rg" {
+permissions:
+  id-token: write
+  contents: read
 
-  name     = "Vikas"
-  location = "eastus"
-}
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: "Normal Resource group code"
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform Init
+        run: terraform init
+
+      - name: Terraform Plan
+        run: terraform plan
